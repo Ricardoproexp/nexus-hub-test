@@ -7,6 +7,7 @@ interface Company {
   address: string;
   phone: string;
   email: string;
+  password: string;
   segment: 'barbearia' | 'cabeleireiro' | 'restaurante' | null;
   subscriptionType: 'monthly' | 'annual' | null;
 }
@@ -24,6 +25,7 @@ const defaultCompany: Company = {
   address: '',
   phone: '',
   email: '',
+  password: '',
   segment: null,
   subscriptionType: null,
 };
