@@ -1,9 +1,5 @@
 
-import { Toast, toast as sonnerToast } from "sonner";
-
-type ToastProps = React.ComponentProps<typeof Toast>
-
-type ToastActionElement = React.ReactElement<typeof Toast>
+import { toast as sonnerToast, type ToastT } from "sonner";
 
 export type ToastAction = {
   icon?: React.ReactNode
@@ -26,7 +22,7 @@ export const toast = (options: ExtraToastOptions) => {
       ? {
         label: action.title,
         onClick: action.onClick,
-        icon: action.icon,
+        // icon property is not supported directly by sonner
       }
       : undefined,
     ...restOptions,
