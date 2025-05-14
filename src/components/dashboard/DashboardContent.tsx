@@ -2,10 +2,13 @@
 import React from 'react';
 import { useCompany } from '@/context/CompanyContext';
 import Card from '../common/Card';
-import { Calendar, Users, LineChart, Clock } from 'lucide-react';
+import Button from '../common/Button';
+import { Calendar, Users, LineChart, Clock, PlusCircle, Settings, Scissors, Utensils } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const DashboardContent: React.FC = () => {
   const { company } = useCompany();
+  const { toast } = useToast();
   
   // Obtém o título personalizado com base no segmento
   const getSegmentSpecificTitle = () => {
@@ -26,33 +29,67 @@ const DashboardContent: React.FC = () => {
     switch(company.segment) {
       case 'barbearia':
         return [
-          { icon: <Calendar size={24} className="text-blue-500" />, label: 'Agendamentos Hoje', value: '8' },
-          { icon: <Users size={24} className="text-green-500" />, label: 'Clientes Ativos', value: '42' },
-          { icon: <LineChart size={24} className="text-purple-500" />, label: 'Faturamento Mensal', value: 'R$ 3.250' },
+          { icon: <Calendar size={24} className="text-blue-500" />, label: 'Agendamentos Hoje', value: '0' },
+          { icon: <Users size={24} className="text-green-500" />, label: 'Clientes Ativos', value: '0' },
+          { icon: <LineChart size={24} className="text-purple-500" />, label: 'Faturamento Mensal', value: '0 €' },
           { icon: <Clock size={24} className="text-orange-500" />, label: 'Tempo Médio', value: '30 min' },
         ];
       case 'cabeleireiro':
         return [
-          { icon: <Calendar size={24} className="text-blue-500" />, label: 'Agendamentos Hoje', value: '12' },
-          { icon: <Users size={24} className="text-green-500" />, label: 'Clientes Ativos', value: '78' },
-          { icon: <LineChart size={24} className="text-purple-500" />, label: 'Faturamento Mensal', value: 'R$ 5.680' },
+          { icon: <Calendar size={24} className="text-blue-500" />, label: 'Agendamentos Hoje', value: '0' },
+          { icon: <Users size={24} className="text-green-500" />, label: 'Clientes Ativos', value: '0' },
+          { icon: <LineChart size={24} className="text-purple-500" />, label: 'Faturamento Mensal', value: '0 €' },
           { icon: <Clock size={24} className="text-orange-500" />, label: 'Tempo Médio', value: '45 min' },
         ];
       case 'restaurante':
         return [
-          { icon: <Calendar size={24} className="text-blue-500" />, label: 'Reservas Hoje', value: '15' },
-          { icon: <Users size={24} className="text-green-500" />, label: 'Clientes Mês', value: '124' },
-          { icon: <LineChart size={24} className="text-purple-500" />, label: 'Faturamento Mensal', value: 'R$ 12.450' },
+          { icon: <Calendar size={24} className="text-blue-500" />, label: 'Reservas Hoje', value: '0' },
+          { icon: <Users size={24} className="text-green-500" />, label: 'Clientes Mês', value: '0' },
+          { icon: <LineChart size={24} className="text-purple-500" />, label: 'Faturamento Mensal', value: '0 €' },
           { icon: <Clock size={24} className="text-orange-500" />, label: 'Tempo Médio', value: '1h20' },
         ];
       default:
         return [
           { icon: <Calendar size={24} className="text-blue-500" />, label: 'Compromissos', value: '0' },
           { icon: <Users size={24} className="text-green-500" />, label: 'Clientes', value: '0' },
-          { icon: <LineChart size={24} className="text-purple-500" />, label: 'Faturamento', value: 'R$ 0' },
+          { icon: <LineChart size={24} className="text-purple-500" />, label: 'Faturamento', value: '0 €' },
           { icon: <Clock size={24} className="text-orange-500" />, label: 'Tempo Médio', value: '0 min' },
         ];
     }
+  };
+
+  // Obtém o ícone específico para o segmento
+  const getSegmentIcon = () => {
+    switch(company.segment) {
+      case 'barbearia':
+      case 'cabeleireiro':
+        return <Scissors size={48} className="text-primary" />;
+      case 'restaurante':
+        return <Utensils size={48} className="text-primary" />;
+      default:
+        return <Settings size={48} className="text-primary" />;
+    }
+  };
+  
+  // Obtém o texto de CTA específico para o segmento
+  const getSegmentCTA = () => {
+    switch(company.segment) {
+      case 'barbearia':
+        return 'Adicione seu primeiro serviço de barbearia';
+      case 'cabeleireiro':
+        return 'Adicione seu primeiro serviço de salão';
+      case 'restaurante':
+        return 'Adicione seu primeiro item do cardápio';
+      default:
+        return 'Adicione seu primeiro serviço';
+    }
+  };
+
+  const handleAddFirstItem = () => {
+    toast({
+      title: "Funcionalidade em desenvolvimento",
+      description: "Esta funcionalidade estará disponível em breve!",
+    });
   };
   
   const metrics = getSegmentSpecificMetrics();
@@ -60,6 +97,23 @@ const DashboardContent: React.FC = () => {
   return (
     <div className="p-6 space-y-8 animate-fade-in">
       <h2 className="text-2xl font-semibold">{getSegmentSpecificTitle()}</h2>
+      
+      {/* Estado vazio */}
+      <Card className="p-10 text-center">
+        <div className="flex flex-col items-center max-w-md mx-auto">
+          <div className="bg-primary bg-opacity-10 p-4 rounded-full mb-6">
+            {getSegmentIcon()}
+          </div>
+          <h3 className="text-xl font-semibold mb-2">Bem-vindo ao NexusHub</h3>
+          <p className="text-gray-600 mb-6">
+            Seu dashboard está pronto para uso. Comece adicionando seu primeiro item para ver métricas e dados relevantes.
+          </p>
+          <Button onClick={handleAddFirstItem}>
+            <PlusCircle size={20} className="mr-2" />
+            {getSegmentCTA()}
+          </Button>
+        </div>
+      </Card>
       
       {/* Métricas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -76,61 +130,37 @@ const DashboardContent: React.FC = () => {
         ))}
       </div>
       
-      {/* Atividades Recentes */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Card>
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Atividades Recentes</h3>
-              
-              <div className="space-y-4">
-                {[1, 2, 3].map((_, index) => (
-                  <div key={index} className="flex items-start pb-4 border-b last:border-b-0 last:pb-0">
-                    <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center mr-3 flex-shrink-0">
-                      <Users size={20} className="text-gray-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">Novo cliente registrado</p>
-                      <p className="text-sm text-gray-600">
-                        {index === 0 ? 'Há 10 minutos' : index === 1 ? 'Há 3 horas' : 'Há 1 dia'}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+      {/* Próximos Passos */}
+      <Card>
+        <div className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Próximos Passos</h3>
+          
+          <ul className="space-y-3">
+            <li className="flex items-center">
+              <div className="h-6 w-6 rounded-full border-2 border-primary flex items-center justify-center mr-3 flex-shrink-0">
+                <span className="text-primary text-sm">1</span>
               </div>
-            </div>
-          </Card>
+              <span>Configure seu perfil</span>
+            </li>
+            <li className="flex items-center">
+              <div className="h-6 w-6 rounded-full border-2 border-primary flex items-center justify-center mr-3 flex-shrink-0">
+                <span className="text-primary text-sm">2</span>
+              </div>
+              <span>
+                {company.segment === 'restaurante' ? 'Adicione itens ao cardápio' : 'Adicione seus serviços'}
+              </span>
+            </li>
+            <li className="flex items-center">
+              <div className="h-6 w-6 rounded-full border-2 border-primary flex items-center justify-center mr-3 flex-shrink-0">
+                <span className="text-primary text-sm">3</span>
+              </div>
+              <span>
+                {company.segment === 'restaurante' ? 'Comece a gerenciar reservas' : 'Comece a gerenciar clientes'}
+              </span>
+            </li>
+          </ul>
         </div>
-        
-        <div>
-          <Card>
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Próximos Passos</h3>
-              
-              <ul className="space-y-3">
-                <li className="flex items-center">
-                  <div className="h-6 w-6 rounded-full border-2 border-primary flex items-center justify-center mr-3 flex-shrink-0">
-                    <span className="text-primary text-sm">1</span>
-                  </div>
-                  <span>Configure seu perfil</span>
-                </li>
-                <li className="flex items-center">
-                  <div className="h-6 w-6 rounded-full border-2 border-primary flex items-center justify-center mr-3 flex-shrink-0">
-                    <span className="text-primary text-sm">2</span>
-                  </div>
-                  <span>Adicione seus serviços</span>
-                </li>
-                <li className="flex items-center">
-                  <div className="h-6 w-6 rounded-full border-2 border-primary flex items-center justify-center mr-3 flex-shrink-0">
-                    <span className="text-primary text-sm">3</span>
-                  </div>
-                  <span>Convide sua equipe</span>
-                </li>
-              </ul>
-            </div>
-          </Card>
-        </div>
-      </div>
+      </Card>
     </div>
   );
 };

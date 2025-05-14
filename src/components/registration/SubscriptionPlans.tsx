@@ -51,7 +51,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onComplete, onBac
               <div className="p-6 border-b">
                 <h3 className="text-xl font-medium mb-2">Plano Mensal</h3>
                 <div className="flex items-end mb-4">
-                  <span className="text-3xl font-bold">R$ 99</span>
+                  <span className="text-3xl font-bold">19,99 €</span>
                   <span className="text-gray-600 ml-1">/mês</span>
                 </div>
                 <p className="text-sm text-gray-600">Flexibilidade para seus negócios</p>
@@ -74,7 +74,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onComplete, onBac
                   fullWidth
                   onClick={() => handlePlanSelect('monthly')}
                 >
-                  Assinar Mensal
+                  Assinar Mensal — 19,99 €/mês
                 </Button>
               </div>
             </div>
@@ -87,23 +87,23 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onComplete, onBac
           className="cursor-pointer relative"
         >
           <div className="absolute -top-4 right-4 bg-primary text-white px-3 py-1 rounded-full text-sm font-medium">
-            -15%
+            -20%
           </div>
           
           <Card 
             highlighted={company.subscriptionType === 'annual'}
-            className={`h-full transition-all duration-200 hover:shadow-lg ${company.subscriptionType === 'annual' ? 'transform translate-y-[-4px]' : ''}`}
+            className={`h-full transition-all duration-200 hover:shadow-lg bg-blue-50 ${company.subscriptionType === 'annual' ? 'transform translate-y-[-4px]' : ''}`}
           >
             <div className="flex flex-col h-full">
               <div className="p-6 border-b">
                 <h3 className="text-xl font-medium mb-2">Plano Anual</h3>
                 <div className="flex items-end mb-4">
-                  <span className="text-3xl font-bold">R$ 999</span>
+                  <span className="text-3xl font-bold">191,90 €</span>
                   <span className="text-gray-600 ml-1">/ano</span>
                 </div>
                 <p className="text-sm text-gray-600">
-                  <span className="line-through text-gray-400 mr-1">R$ 1.188</span>
-                  Economia de R$ 189
+                  <span className="line-through text-gray-400 mr-1">239,88 €</span>
+                  Economia de 47,98 €
                 </p>
               </div>
               
@@ -132,7 +132,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onComplete, onBac
                   fullWidth
                   onClick={() => handlePlanSelect('annual')}
                 >
-                  Assinar Anual
+                  Assinar Anual — 191,90 €/ano
                 </Button>
               </div>
             </div>

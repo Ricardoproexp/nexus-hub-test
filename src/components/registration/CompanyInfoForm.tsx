@@ -46,10 +46,10 @@ const CompanyInfoForm: React.FC<CompanyInfoFormProps> = ({ onNext }) => {
       />
       
       <Input
-        label="CNPJ"
+        label="CNPJ / NIF"
         value={company.cnpj}
         onChange={(e) => updateCompany({ cnpj: e.target.value })}
-        placeholder="XX.XXX.XXX/XXXX-XX"
+        placeholder="Insira o documento fiscal da sua empresa"
         error={errors.cnpj}
         required
       />
@@ -68,7 +68,7 @@ const CompanyInfoForm: React.FC<CompanyInfoFormProps> = ({ onNext }) => {
           label="Telefone"
           value={company.phone}
           onChange={(e) => updateCompany({ phone: e.target.value })}
-          placeholder="(XX) XXXXX-XXXX"
+          placeholder="+XX XXXXX-XXXX"
           error={errors.phone}
           required
         />
@@ -78,7 +78,7 @@ const CompanyInfoForm: React.FC<CompanyInfoFormProps> = ({ onNext }) => {
           type="email"
           value={company.email}
           onChange={(e) => updateCompany({ email: e.target.value })}
-          placeholder="contato@suaempresa.com.br"
+          placeholder="contato@suaempresa.com"
           error={errors.email}
           required
         />
