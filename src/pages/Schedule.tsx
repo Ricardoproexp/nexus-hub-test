@@ -86,6 +86,7 @@ const Schedule: React.FC = () => {
   const [selectedTime, setSelectedTime] = useState<Date | null>(null);
   const [timeSlots, setTimeSlots] = useState<{ time: Date; isAvailable: boolean }[]>([]);
   const { customer } = useCustomer();
+  const { toast } = useToast();
   
   useEffect(() => {
     // In a real app, this would be an API call
