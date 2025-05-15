@@ -1,5 +1,5 @@
 
-import { toast as sonnerToast, type ToastT } from "sonner";
+import { toast as sonnerToast } from "sonner";
 
 export type ToastAction = {
   icon?: React.ReactNode
@@ -11,10 +11,11 @@ export type ExtraToastOptions = {
   action?: ToastAction
   description?: string
   title?: string
+  variant?: "default" | "destructive"
 }
 
 export const toast = (options: ExtraToastOptions) => {
-  const { action, description, title, ...restOptions } = options;
+  const { action, description, title, variant, ...restOptions } = options;
   
   return sonnerToast(title, {
     description,
