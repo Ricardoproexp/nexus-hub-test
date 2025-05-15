@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCustomer } from '@/context/CustomerContext';
@@ -17,7 +16,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { toast } from '@/hooks/use-toast';
+import { useToast } from "@/hooks/use-toast";
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 
 const loginSchema = z.object({

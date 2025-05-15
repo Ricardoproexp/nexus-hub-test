@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from "@/hooks/use-toast";
 import { useCustomer } from '@/context/CustomerContext';
 import Logo from '@/components/common/Logo';
 import { UserCircle, Calendar as CalendarIcon } from 'lucide-react';
