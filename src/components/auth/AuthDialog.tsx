@@ -28,6 +28,11 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ open, onOpenChange }) => {
     navigate('/registration');
   };
 
+  const handleCompanyAuth = () => {
+    onOpenChange(false);
+    navigate('/company/auth');
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -44,6 +49,13 @@ const AuthDialog: React.FC<AuthDialogProps> = ({ open, onOpenChange }) => {
             size="sm"
           >
             Cliente: Entrar / Cadastrar
+          </Button>
+          <Button 
+            onClick={handleCompanyAuth}
+            className="w-full bg-[#0057B7] hover:bg-[#004494]" 
+            size="sm"
+          >
+            Empresa: Entrar
           </Button>
           <Button 
             onClick={handleCompanyRegistration}

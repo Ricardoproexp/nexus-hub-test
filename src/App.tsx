@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import Search from "./pages/Search";
 import Schedule from "./pages/Schedule";
 import CustomerAuth from "./pages/CustomerAuth";
+import CompanyAuth from "./pages/CompanyAuth";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/search" element={<Search />} />
               <Route path="/schedule/:id" element={<Schedule />} />
               <Route path="/customer/auth" element={<CustomerAuth />} />
+              <Route path="/company/auth" element={<CompanyAuth />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
