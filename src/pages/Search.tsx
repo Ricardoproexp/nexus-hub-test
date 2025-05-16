@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { Search as SearchIcon, UserCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCustomer } from '@/context/CustomerContext';
 import Logo from '@/components/common/Logo';
+import AuthDialog from '@/components/auth/AuthDialog';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
 type CompanyResult = {
@@ -31,6 +31,7 @@ const Search: React.FC = () => {
   const [results, setResults] = useState<CompanyResult[]>([]);
   const [searched, setSearched] = useState(false);
   const [showCommandMenu, setShowCommandMenu] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const navigate = useNavigate();
   const { customer, logoutCustomer } = useCustomer();
 
@@ -95,13 +96,13 @@ const Search: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <Button size="xs" onClick={() => navigate('/customer/auth')}>
+              <Button 
+                size="xs" 
+                onClick={() => setShowAuthDialog(true)}
+              >
                 Entrar / Cadastrar
               </Button>
             )}
-            <Button size="xs" variant="outline" onClick={() => navigate('/registration')}>
-              Registrar Empresa
-            </Button>
           </div>
         </div>
       </div>
@@ -219,6 +220,11 @@ const Search: React.FC = () => {
           )}
         </div>
       </div>
+      
+      <AuthDialog 
+        open={showAuthDialog} 
+        onOpenChange={setShowAuthDialog} 
+      />
     </div>
   );
 };
