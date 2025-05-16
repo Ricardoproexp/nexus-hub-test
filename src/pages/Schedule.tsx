@@ -161,7 +161,7 @@ const Schedule: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
         <p>Empresa não encontrada</p>
-        <Button onClick={() => navigate('/search')} className="mt-4">
+        <Button size="sm" onClick={() => navigate('/search')} className="mt-4">
           Voltar para busca
         </Button>
       </div>
@@ -170,20 +170,20 @@ const Schedule: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <div className="py-6 px-4 sm:px-6 lg:px-8 border-b bg-white">
+      <div className="py-4 px-4 sm:px-6 lg:px-8 border-b bg-white">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <Logo />
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             {customer ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <div className="text-sm text-right">
-                  <p className="font-medium">{customer.name}</p>
+                  <p className="font-medium text-xs">{customer.name}</p>
                   <p className="text-gray-500 text-xs">{customer.email}</p>
                 </div>
-                <UserCircle className="h-6 w-6" />
+                <UserCircle className="h-5 w-5" />
               </div>
             ) : (
-              <Button onClick={() => navigate('/customer/auth')}>
+              <Button size="xs" onClick={() => navigate('/customer/auth')}>
                 Entrar / Cadastrar
               </Button>
             )}
@@ -191,18 +191,18 @@ const Schedule: React.FC = () => {
         </div>
       </div>
       
-      <div className="flex-grow py-8 px-4 sm:px-6 lg:px-8">
+      <div className="flex-grow py-6 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          <div className="mb-6">
-            <Button variant="outline" onClick={() => navigate('/search')} className="mb-4">
+          <div className="mb-5">
+            <Button size="xs" variant="outline" onClick={() => navigate('/search')} className="mb-3">
               ← Voltar para busca
             </Button>
             <h1 className="text-2xl font-bold">{company.name}</h1>
             <div className="flex items-center mt-1">
-              <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded-full mr-2">
+              <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full mr-2">
                 {getSegmentLabel(company.segment)}
               </span>
-              <p className="text-gray-600">{company.address}</p>
+              <p className="text-gray-600 text-sm">{company.address}</p>
             </div>
           </div>
           

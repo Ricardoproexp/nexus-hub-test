@@ -70,19 +70,19 @@ const Search: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <div className="py-6 px-4 sm:px-6 lg:px-8 border-b bg-white">
+      <div className="py-4 px-4 sm:px-6 lg:px-8 border-b bg-white">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <Logo />
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             {customer ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <div className="text-sm text-right">
-                  <p className="font-medium">{customer.name}</p>
+                  <p className="font-medium text-xs">{customer.name}</p>
                   <p className="text-gray-500 text-xs">{customer.email}</p>
                 </div>
                 <div className="relative group">
-                  <Button variant="ghost" className="rounded-full p-2 h-10 w-10">
-                    <UserCircle className="h-6 w-6" />
+                  <Button variant="ghost" className="rounded-full p-1 h-8 w-8">
+                    <UserCircle className="h-5 w-5" />
                   </Button>
                   <div className="absolute right-0 z-10 mt-1 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none hidden group-hover:block">
                     <button 
@@ -95,11 +95,11 @@ const Search: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <Button onClick={() => navigate('/customer/auth')}>
+              <Button size="xs" onClick={() => navigate('/customer/auth')}>
                 Entrar / Cadastrar
               </Button>
             )}
-            <Button variant="outline" onClick={() => navigate('/registration')}>
+            <Button size="xs" variant="outline" onClick={() => navigate('/registration')}>
               Registrar Empresa
             </Button>
           </div>

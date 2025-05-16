@@ -106,10 +106,10 @@ const CustomerAuth: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <div className="py-6 px-4 sm:px-6 lg:px-8 border-b bg-white">
+      <div className="py-4 px-4 sm:px-6 lg:px-8 border-b bg-white">
         <div className="max-w-5xl mx-auto flex justify-between items-center">
           <Logo />
-          <Button variant="outline" onClick={() => navigate('/search')}>
+          <Button size="xs" variant="outline" onClick={() => navigate('/search')}>
             Voltar para busca
           </Button>
         </div>
