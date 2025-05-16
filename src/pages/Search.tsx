@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -5,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Search as SearchIcon, UserCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCustomer } from '@/context/CustomerContext';
+import { useCompany } from '@/context/CompanyContext';
 import Logo from '@/components/common/Logo';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -16,24 +18,35 @@ type CompanyResult = {
   address: string;
 };
 
-// This would be replaced with actual API calls in a real implementation
-const mockCompanies: CompanyResult[] = [
-  { id: '1', name: 'Barbearia Vintage', segment: 'barbearia', address: 'Rua das Flores, 123' },
-  { id: '2', name: 'Salão Beleza Pura', segment: 'cabeleireiro', address: 'Av. Principal, 456' },
-  { id: '3', name: 'Restaurante Sabor Caseiro', segment: 'restaurante', address: 'Praça Central, 789' },
-  { id: '4', name: 'Barbearia Moderna', segment: 'barbearia', address: 'Rua dos Barros, 321' },
-  { id: '5', name: 'Cabeleireiro Style', segment: 'cabeleireiro', address: 'Av. Fashion, 987' },
-  { id: '6', name: 'Restaurante Italiano', segment: 'restaurante', address: 'Rua da Itália, 654' }
-];
-
 const Search: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<CompanyResult[]>([]);
   const [searched, setSearched] = useState(false);
   const [showCommandMenu, setShowCommandMenu] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [registeredCompanies, setRegisteredCompanies] = useState<CompanyResult[]>([]);
   const navigate = useNavigate();
   const { customer, logoutCustomer } = useCustomer();
+  const { company } = useCompany();
+
+  // Initialize with registered companies when component mounts
+  useEffect(() => {
+    // In a real implementation, this would fetch from a database
+    // Currently using company context as a simple example
+    const completedCompanies: CompanyResult[] = [];
+    
+    // If there is a registered company with a subscription, add it to the list
+    if (company.name && company.subscriptionType) {
+      completedCompanies.push({
+        id: '1', // In a real app, this would be a unique ID
+        name: company.name,
+        segment: company.segment || 'barbearia',
+        address: company.address || 'Endereço não disponível',
+      });
+    }
+    
+    setRegisteredCompanies(completedCompanies);
+  }, [company]);
 
   useEffect(() => {
     if (searchTerm.trim() === '') {
@@ -41,11 +54,11 @@ const Search: React.FC = () => {
       return;
     }
     
-    const filteredResults = mockCompanies.filter(company => 
+    const filteredResults = registeredCompanies.filter(company => 
       company.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setResults(filteredResults);
-  }, [searchTerm]);
+  }, [searchTerm, registeredCompanies]);
 
   const handleSearch = () => {
     setSearched(true);
