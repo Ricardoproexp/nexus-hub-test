@@ -1,21 +1,22 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useCompany } from '@/context/CompanyContext';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Form,
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
+  FormControl,
   FormMessage,
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import PasswordInput from './PasswordInput';
+import ContactInfoFields from './ContactInfoFields';
+import CompanyInfoFields from './CompanyInfoFields';
 
 interface CompanyInfoFormProps {
   onNext: () => void;
@@ -36,8 +37,6 @@ const formSchema = z.object({
 
 const CompanyInfoForm: React.FC<CompanyInfoFormProps> = ({ onNext }) => {
   const { company, updateCompany } = useCompany();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,131 +66,23 @@ const CompanyInfoForm: React.FC<CompanyInfoFormProps> = ({ onNext }) => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 animate-fade-in">
         <h2 className="text-2xl font-semibold mb-6">Informações da Empresa</h2>
         
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nome da Empresa</FormLabel>
-              <FormControl>
-                <Input placeholder="Insira o nome da sua empresa" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <CompanyInfoFields control={form.control} />
         
-        <FormField
-          control={form.control}
-          name="cnpj"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>CNPJ / NIF</FormLabel>
-              <FormControl>
-                <Input placeholder="Insira o documento fiscal da sua empresa" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Endereço</FormLabel>
-              <FormControl>
-                <Input placeholder="Rua, número, bairro, cidade/UF" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <ContactInfoFields control={form.control} />
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Telefone</FormLabel>
-                <FormControl>
-                  <Input placeholder="+XX XXXXX-XXXX" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>E-mail de Contato</FormLabel>
-                <FormControl>
-                  <Input type="email" placeholder="contato@suaempresa.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
+          <PasswordInput 
             control={form.control}
             name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Senha</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input 
-                      type={showPassword ? "text" : "password"} 
-                      placeholder="Senha para acesso" 
-                      {...field} 
-                    />
-                    <button 
-                      type="button"
-                      className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
-                    </button>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Senha"
+            placeholder="Senha para acesso"
           />
           
-          <FormField
+          <PasswordInput 
             control={form.control}
             name="confirmPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Confirmar Senha</FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input 
-                      type={showConfirmPassword ? "text" : "password"} 
-                      placeholder="Confirme sua senha" 
-                      {...field} 
-                    />
-                    <button 
-                      type="button"
-                      className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? <EyeOffIcon size={18} /> : <EyeIcon size={18} />}
-                    </button>
-                  </div>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="Confirmar Senha"
+            placeholder="Confirme sua senha"
           />
         </div>
         
