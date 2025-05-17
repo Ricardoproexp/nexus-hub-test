@@ -35,7 +35,7 @@ const Customers: React.FC = () => {
     try {
       setIsLoading(true);
       
-      // Simulando fetch de clientes (na implementação real, você precisaria adicionar uma tabela company_customers)
+      // Fetch customers associated with the current company
       const { data, error } = await supabase
         .from('customers')
         .select('*')
@@ -70,7 +70,6 @@ const Customers: React.FC = () => {
   
   const handleDeleteCustomer = async (id: string) => {
     try {
-      // Na implementação real, você precisaria adicionar uma tabela company_customers
       const { error } = await supabase
         .from('customers')
         .delete()

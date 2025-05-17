@@ -175,7 +175,9 @@ const DashboardContent: React.FC = () => {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <Card key={i} className="h-24 animate-pulse bg-gray-100" />
+            <Card key={i} className="h-24 animate-pulse bg-gray-100">
+              {/* Empty card for loading state */}
+            </Card>
           ))}
         </div>
       ) : showEmptyState ? (
@@ -278,39 +280,37 @@ const DashboardContent: React.FC = () => {
           </div>
           
           {/* Próximos Passos */}
-          <Card>
-            <div className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Próximos Passos</h3>
-              
-              <ul className="space-y-3">
-                <li className="flex items-center">
-                  <div className="h-6 w-6 rounded-full border-2 border-primary flex items-center justify-center mr-3 flex-shrink-0">
-                    <span className="text-primary text-sm">1</span>
-                  </div>
-                  <span>Complete seu perfil em Configurações</span>
-                </li>
-                <li className="flex items-center">
-                  <div className="h-6 w-6 rounded-full border-2 border-primary flex items-center justify-center mr-3 flex-shrink-0">
-                    <span className="text-primary text-sm">2</span>
-                  </div>
-                  <span>
-                    {company.segment === 'restaurante' 
-                      ? 'Adicione mais itens ao cardápio' 
-                      : 'Adicione mais serviços'}
-                  </span>
-                </li>
-                <li className="flex items-center">
-                  <div className="h-6 w-6 rounded-full border-2 border-primary flex items-center justify-center mr-3 flex-shrink-0">
-                    <span className="text-primary text-sm">3</span>
-                  </div>
-                  <span>
-                    {company.segment === 'restaurante' 
-                      ? 'Comece a registrar reservas' 
-                      : 'Comece a registrar agendamentos'}
-                  </span>
-                </li>
-              </ul>
-            </div>
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Próximos Passos</h3>
+            
+            <ul className="space-y-3">
+              <li className="flex items-center">
+                <div className="h-6 w-6 rounded-full border-2 border-primary flex items-center justify-center mr-3 flex-shrink-0">
+                  <span className="text-primary text-sm">1</span>
+                </div>
+                <span>Complete seu perfil em Configurações</span>
+              </li>
+              <li className="flex items-center">
+                <div className="h-6 w-6 rounded-full border-2 border-primary flex items-center justify-center mr-3 flex-shrink-0">
+                  <span className="text-primary text-sm">2</span>
+                </div>
+                <span>
+                  {company.segment === 'restaurante' 
+                    ? 'Adicione mais itens ao cardápio' 
+                    : 'Adicione mais serviços'}
+                </span>
+              </li>
+              <li className="flex items-center">
+                <div className="h-6 w-6 rounded-full border-2 border-primary flex items-center justify-center mr-3 flex-shrink-0">
+                  <span className="text-primary text-sm">3</span>
+                </div>
+                <span>
+                  {company.segment === 'restaurante' 
+                    ? 'Comece a registrar reservas' 
+                    : 'Comece a registrar agendamentos'}
+                </span>
+              </li>
+            </ul>
           </Card>
         </>
       )}

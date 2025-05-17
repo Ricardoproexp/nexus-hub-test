@@ -62,12 +62,22 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ customer, onSaved, onCancel
         throw new Error('Empresa não identificada');
       }
 
+      // Get current user session for user_id
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user_id = sessionData?.session?.user?.id;
+      
+      if (!user_id) {
+        throw new Error('Usuário não autenticado');
+      }
+
       // Construir objeto para salvar
       const customerData = {
         name: values.name,
         email: values.email,
         phone: values.phone,
         address: values.address,
+        user_id: user_id,  // Add the required user_id field
+        company_id: company.id, // Add company_id to associate customer with company
       };
       
       if (customer?.id) {
