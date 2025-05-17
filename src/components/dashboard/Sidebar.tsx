@@ -2,7 +2,8 @@
 import React from 'react';
 import { useCompany } from '@/context/CompanyContext';
 import Logo from '../common/Logo';
-import { Home, Calendar, Users, LineChart, Settings, Menu, X } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { Home, Calendar, Users, Package, LineChart, CreditCard, Settings, Menu, X, Clipboard, Utensils, Scissors } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -10,40 +11,51 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
-  const { company } = useCompany();
+  const { company, logoutCompany } = useCompany();
+  const location = useLocation();
+
+  // Função para verificar se o link está ativo
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
 
   // Menu items baseados no segmento selecionado
   const getSegmentSpecificItems = () => {
     switch (company.segment) {
       case 'barbearia':
         return [
-          { icon: <Calendar size={20} />, label: 'Agendamentos', path: '#' },
-          { icon: <Users size={20} />, label: 'Clientes', path: '#' },
+          { icon: <Calendar size={20} />, label: 'Agendamentos', path: '/appointments' },
+          { icon: <Scissors size={20} />, label: 'Serviços', path: '/services' },
+          { icon: <Users size={20} />, label: 'Clientes', path: '/customers' },
         ];
       case 'cabeleireiro':
         return [
-          { icon: <Calendar size={20} />, label: 'Agendamentos', path: '#' },
-          { icon: <Users size={20} />, label: 'Clientes', path: '#' },
+          { icon: <Calendar size={20} />, label: 'Agendamentos', path: '/appointments' },
+          { icon: <Scissors size={20} />, label: 'Serviços', path: '/services' },
+          { icon: <Users size={20} />, label: 'Clientes', path: '/customers' },
         ];
       case 'restaurante':
         return [
-          { icon: <Calendar size={20} />, label: 'Reservas', path: '#' },
-          { icon: <Users size={20} />, label: 'Clientes', path: '#' },
+          { icon: <Calendar size={20} />, label: 'Reservas', path: '/appointments' },
+          { icon: <Utensils size={20} />, label: 'Cardápio', path: '/services' },
+          { icon: <Users size={20} />, label: 'Clientes', path: '/customers' },
         ];
       default:
         return [
-          { icon: <Calendar size={20} />, label: 'Agenda', path: '#' },
-          { icon: <Users size={20} />, label: 'Clientes', path: '#' },
+          { icon: <Calendar size={20} />, label: 'Agenda', path: '/appointments' },
+          { icon: <Package size={20} />, label: 'Serviços/Produtos', path: '/services' },
+          { icon: <Users size={20} />, label: 'Clientes', path: '/customers' },
         ];
     }
   };
 
   // Menu items comuns
   const commonItems = [
-    { icon: <Home size={20} />, label: 'Dashboard', path: '#' },
+    { icon: <Home size={20} />, label: 'Dashboard', path: '/dashboard' },
     ...getSegmentSpecificItems(),
-    { icon: <LineChart size={20} />, label: 'Relatórios', path: '#' },
-    { icon: <Settings size={20} />, label: 'Configurações', path: '#' },
+    { icon: <LineChart size={20} />, label: 'Relatórios', path: '/reports' },
+    { icon: <CreditCard size={20} />, label: 'Assinatura', path: '/subscription' },
+    { icon: <Settings size={20} />, label: 'Configurações', path: '/settings' },
   ];
 
   return (
@@ -82,27 +94,41 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
           <ul className="space-y-1">
             {commonItems.map((item, index) => (
               <li key={index}>
-                <a 
-                  href={item.path} 
-                  className="flex items-center px-4 py-3 rounded-md hover:bg-sidebar-accent transition-colors"
+                <Link 
+                  to={item.path} 
+                  className={`flex items-center px-4 py-3 rounded-md transition-colors ${
+                    isActive(item.path) 
+                      ? 'bg-sidebar-accent text-white' 
+                      : 'hover:bg-sidebar-accent/50'
+                  }`}
+                  onClick={isOpen ? toggleSidebar : undefined}
                 >
                   <span className="mr-3">{item.icon}</span>
                   <span>{item.label}</span>
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
         </nav>
         
         <div className="p-4 mt-auto border-t border-sidebar-border">
-          <div className="flex items-center">
-            <div className="h-8 w-8 rounded-full bg-primary-hover flex items-center justify-center mr-2">
-              {company.name ? company.name.charAt(0).toUpperCase() : 'U'}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="h-8 w-8 rounded-full bg-primary-hover flex items-center justify-center mr-2">
+                {company.name ? company.name.charAt(0).toUpperCase() : 'U'}
+              </div>
+              <div className="truncate">
+                <p className="text-sm font-medium truncate">{company.name || 'Usuário'}</p>
+                <p className="text-xs opacity-80 truncate">{company.email || 'email@exemplo.com'}</p>
+              </div>
             </div>
-            <div className="truncate">
-              <p className="text-sm font-medium truncate">{company.name || 'Usuário'}</p>
-              <p className="text-xs opacity-80 truncate">{company.email || 'email@exemplo.com'}</p>
-            </div>
+            
+            <button
+              onClick={logoutCompany}
+              className="text-sm text-red-400 hover:text-red-300"
+            >
+              Sair
+            </button>
           </div>
         </div>
       </aside>

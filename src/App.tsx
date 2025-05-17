@@ -10,6 +10,9 @@ import Index from "./pages/Index";
 import Registration from "./pages/Registration";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
+import Customers from "./pages/Customers";
+import Services from "./pages/Services";
+import Appointments from "./pages/Appointments";
 import NotFound from "./pages/NotFound";
 import Search from "./pages/Search";
 import Schedule from "./pages/Schedule";
@@ -31,6 +34,9 @@ const App = () => (
               <Route path="/registration" element={<Registration />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/customers" element={<Customers />} />
+              <Route path="/services" element={<Services />} />
+              <Route path="/appointments" element={<Appointments />} />
               <Route path="/search" element={<Search />} />
               <Route path="/schedule/:id" element={<Schedule />} />
               <Route path="/customer/auth" element={<CustomerAuth />} />
