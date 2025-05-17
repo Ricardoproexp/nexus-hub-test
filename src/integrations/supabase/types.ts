@@ -9,7 +9,161 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          appointment_date: string
+          company_id: string
+          created_at: string
+          customer_id: string
+          id: string
+          service_duration: number
+          service_name: string
+          service_price: number | null
+          status: string | null
+        }
+        Insert: {
+          appointment_date: string
+          company_id: string
+          created_at?: string
+          customer_id: string
+          id?: string
+          service_duration: number
+          service_name: string
+          service_price?: number | null
+          status?: string | null
+        }
+        Update: {
+          appointment_date?: string
+          company_id?: string
+          created_at?: string
+          customer_id?: string
+          id?: string
+          service_duration?: number
+          service_name?: string
+          service_price?: number | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          address: string
+          cnpj: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string
+          segment: string | null
+          subscription_type: string | null
+          user_id: string
+        }
+        Insert: {
+          address: string
+          cnpj: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone: string
+          segment?: string | null
+          subscription_type?: string | null
+          user_id: string
+        }
+        Update: {
+          address?: string
+          cnpj?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string
+          segment?: string | null
+          subscription_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      customers: {
+        Row: {
+          address: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          company_id: string
+          created_at: string
+          duration: number
+          id: string
+          name: string
+          price: number | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          duration: number
+          id?: string
+          name: string
+          price?: number | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          duration?: number
+          id?: string
+          name?: string
+          price?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

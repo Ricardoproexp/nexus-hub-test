@@ -1,9 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useCompany } from '@/context/CompanyContext';
 import Button from '../common/Button';
 import Card from '../common/Card';
 import { Check } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 interface SubscriptionPlansProps {
   onComplete: () => void;
@@ -11,15 +12,39 @@ interface SubscriptionPlansProps {
 }
 
 const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onComplete, onBack }) => {
-  const { company, updateCompany } = useCompany();
+  const { company, updateCompany, registerCompany } = useCompany();
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const handlePlanSelect = (type: 'monthly' | 'annual') => {
     updateCompany({ subscriptionType: type });
   };
 
-  const handleSubscribe = () => {
-    if (company.subscriptionType) {
-      onComplete();
+  const handleSubscribe = async () => {
+    if (!company.subscriptionType) {
+      toast({
+        title: "Selecione um plano",
+        description: "Por favor, selecione um plano para continuar",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsRegistering(true);
+    
+    try {
+      const success = await registerCompany();
+      if (success) {
+        onComplete();
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast({
+        title: "Erro no registro",
+        description: "Não foi possível concluir o registro",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRegistering(false);
     }
   };
 
@@ -141,14 +166,15 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onComplete, onBac
       </div>
       
       <div className="flex justify-between pt-6">
-        <Button variant="secondary" onClick={onBack}>
+        <Button variant="secondary" onClick={onBack} disabled={isRegistering}>
           Voltar
         </Button>
         <Button
           onClick={handleSubscribe}
-          disabled={!company.subscriptionType}
+          disabled={!company.subscriptionType || isRegistering}
+          loading={isRegistering}
         >
-          Finalizar Assinatura
+          {isRegistering ? 'Processando...' : 'Finalizar Assinatura'}
         </Button>
       </div>
     </div>
