@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useCompany } from '@/context/CompanyContext';
 import Button from '../common/Button';
@@ -58,6 +57,7 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onComplete, onBac
   ];
 
   return (
+    
     <div className="space-y-6 animate-fade-in">
       <h2 className="text-2xl font-semibold mb-2">Escolha seu Plano</h2>
       <p className="text-gray-600 mb-8">Selecione a forma de pagamento que mais se adequa às suas necessidades.</p>
