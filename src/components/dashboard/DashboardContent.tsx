@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCompany } from '@/context/CompanyContext';
@@ -176,7 +175,8 @@ const DashboardContent: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <Card key={i} className="h-24 animate-pulse bg-gray-100">
-              {/* Empty card for loading state */}
+              {/* Adding empty div as children to fix the error */}
+              <div></div>
             </Card>
           ))}
         </div>
