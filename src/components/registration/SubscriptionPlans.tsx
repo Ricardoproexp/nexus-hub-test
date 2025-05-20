@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { useCompany } from '@/context/CompanyContext';
 import Button from '../common/Button';
 import Card from '../common/Card';
 import { Check } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SubscriptionPlansProps {
   onComplete: () => void;
@@ -31,9 +33,19 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onComplete, onBac
     setIsRegistering(true);
     
     try {
+      // Log auth status before registration
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log("Auth status before registration:", sessionData);
+      
       const success = await registerCompany();
       if (success) {
+        // Verify registration was successful
+        const { data: newSessionData } = await supabase.auth.getSession();
+        console.log("Auth status after registration:", newSessionData);
+        
         onComplete();
+      } else {
+        setIsRegistering(false);
       }
     } catch (error) {
       console.error("Registration error:", error);
@@ -42,7 +54,6 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onComplete, onBac
         description: "Não foi possível concluir o registro",
         variant: "destructive"
       });
-    } finally {
       setIsRegistering(false);
     }
   };

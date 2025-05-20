@@ -80,7 +80,27 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return false;
       }
 
-      // 2. Create the company profile
+      // 2. Wait to make sure the auth session is established
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (!sessionData.session) {
+        // Sign in explicitly if session wasn't created
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: company.email,
+          password: company.password,
+        });
+        
+        if (signInError) {
+          toast({
+            title: "Erro no login",
+            description: signInError.message,
+            variant: "destructive"
+          });
+          return false;
+        }
+      }
+
+      // 3. Create the company profile
       const { error: companyError } = await supabase
         .from('companies')
         .insert({
@@ -95,6 +115,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         });
 
       if (companyError) {
+        console.error("Company insertion error:", companyError);
         toast({
           title: "Erro ao salvar dados",
           description: companyError.message,
