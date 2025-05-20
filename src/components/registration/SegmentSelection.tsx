@@ -3,7 +3,7 @@ import React from 'react';
 import { useCompany } from '@/context/CompanyContext';
 import Button from '../common/Button';
 import Card from '../common/Card';
-import { Scissors, Utensils, Shopping } from 'lucide-react';
+import { Scissors, Utensils, ShoppingBag } from 'lucide-react';
 
 interface SegmentSelectionProps {
   onNext: () => void;
@@ -58,7 +58,7 @@ const SegmentSelection: React.FC<SegmentSelectionProps> = ({ onNext, onBack }) =
           >
             <div className="flex flex-col items-center p-4">
               <div className="bg-primary bg-opacity-10 p-4 rounded-full mb-4">
-                <Shopping size={32} className="text-primary" />
+                <ShoppingBag size={32} className="text-primary" />
               </div>
               <h3 className="text-lg font-medium mb-2">Loja de Produtos</h3>
               <p className="text-sm text-gray-600 text-center">
