@@ -3,7 +3,7 @@ import React from 'react';
 import { useCompany } from '@/context/CompanyContext';
 import Button from '../common/Button';
 import Card from '../common/Card';
-import { Scissors, Utensils } from 'lucide-react';
+import { Scissors, Utensils, Shopping } from 'lucide-react';
 
 interface SegmentSelectionProps {
   onNext: () => void;
@@ -40,9 +40,9 @@ const SegmentSelection: React.FC<SegmentSelectionProps> = ({ onNext, onBack }) =
               <div className="bg-primary bg-opacity-10 p-4 rounded-full mb-4">
                 <Scissors size={32} className="text-primary" />
               </div>
-              <h3 className="text-lg font-medium mb-2">Barbearia</h3>
+              <h3 className="text-lg font-medium mb-2">Barbearia/Cabeleireiro</h3>
               <p className="text-sm text-gray-600 text-center">
-                Gerenciamento para barbearias e seus serviços
+                Gerenciamento para barbearias e salões de beleza
               </p>
             </div>
           </Card>
@@ -58,11 +58,11 @@ const SegmentSelection: React.FC<SegmentSelectionProps> = ({ onNext, onBack }) =
           >
             <div className="flex flex-col items-center p-4">
               <div className="bg-primary bg-opacity-10 p-4 rounded-full mb-4">
-                <Scissors size={32} className="text-primary" />
+                <Shopping size={32} className="text-primary" />
               </div>
-              <h3 className="text-lg font-medium mb-2">Cabeleireiro/Loja Física</h3>
+              <h3 className="text-lg font-medium mb-2">Loja de Produtos</h3>
               <p className="text-sm text-gray-600 text-center">
-                Sistema para salões de beleza e lojas físicas
+                Sistema para lojas físicas de produtos diversos
               </p>
             </div>
           </Card>
