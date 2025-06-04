@@ -63,6 +63,7 @@ export type Database = {
       companies: {
         Row: {
           address: string
+          avatar_url: string | null
           cnpj: string
           created_at: string
           email: string
@@ -75,6 +76,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          avatar_url?: string | null
           cnpj: string
           created_at?: string
           email: string
@@ -87,6 +89,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          avatar_url?: string | null
           cnpj?: string
           created_at?: string
           email?: string

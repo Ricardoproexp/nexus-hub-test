@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { useCompany } from '@/context/CompanyContext';
 import Logo from '../common/Logo';
+import AvatarUpload from '../common/AvatarUpload';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Calendar, Users, Package, LineChart, CreditCard, Settings, Menu, X, Clipboard, Utensils, Scissors } from 'lucide-react';
 
@@ -11,7 +11,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
-  const { company, logoutCompany } = useCompany();
+  const { company, logoutCompany, updateAvatar } = useCompany();
   const location = useLocation();
 
   // Função para verificar se o link está ativo
@@ -114,8 +114,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
         <div className="p-4 mt-auto border-t border-sidebar-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <div className="h-8 w-8 rounded-full bg-primary-hover flex items-center justify-center mr-2">
-                {company.name ? company.name.charAt(0).toUpperCase() : 'U'}
+              <div className="mr-3">
+                <AvatarUpload
+                  currentAvatarUrl={company.avatarUrl}
+                  onAvatarUpdate={(url) => updateAvatar(url)}
+                  fallbackText={company.name ? company.name.charAt(0).toUpperCase() : 'U'}
+                  size="sm"
+                />
               </div>
               <div className="truncate">
                 <p className="text-sm font-medium truncate">{company.name || 'Usuário'}</p>

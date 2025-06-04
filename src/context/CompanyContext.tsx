@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -18,6 +17,7 @@ interface Company {
   subscriptionType: 'monthly' | 'annual' | null;
   isAuthenticated?: boolean;
   id?: string;
+  avatarUrl?: string | null;
 }
 
 interface CompanyContextData {
@@ -28,6 +28,7 @@ interface CompanyContextData {
   loginCompany: (email: string, password: string) => Promise<boolean>;
   logoutCompany: () => void;
   registerCompany: () => Promise<boolean>;
+  updateAvatar: (url: string) => Promise<boolean>;
 }
 
 const defaultCompany: Company = {
@@ -40,6 +41,7 @@ const defaultCompany: Company = {
   segment: null,
   subscriptionType: null,
   isAuthenticated: false,
+  avatarUrl: null,
 };
 
 const CompanyContext = createContext<CompanyContextData>({
@@ -50,6 +52,7 @@ const CompanyContext = createContext<CompanyContextData>({
   loginCompany: () => Promise.resolve(false),
   logoutCompany: () => {},
   registerCompany: () => Promise.resolve(false),
+  updateAvatar: () => Promise.resolve(false),
 });
 
 export const useCompany = () => useContext(CompanyContext);
@@ -215,7 +218,8 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         password: '',
         segment: companyData.segment as any,
         subscriptionType: companyData.subscription_type as any,
-        isAuthenticated: true
+        isAuthenticated: true,
+        avatarUrl: companyData.avatar_url
       });
 
       toast({
@@ -232,6 +236,16 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         description: "Ocorreu um erro inesperado",
         variant: "destructive"
       });
+      return false;
+    }
+  };
+
+  const updateAvatar = async (url: string): Promise<boolean> => {
+    try {
+      updateCompany({ avatarUrl: url });
+      return true;
+    } catch (error) {
+      console.error('Avatar update error:', error);
       return false;
     }
   };
@@ -266,6 +280,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         loginCompany,
         logoutCompany,
         registerCompany,
+        updateAvatar,
       }}
     >
       {children}
