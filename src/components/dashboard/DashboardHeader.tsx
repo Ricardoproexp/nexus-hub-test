@@ -27,11 +27,13 @@ const DashboardHeader: React.FC = () => {
     <header className="bg-white border-b p-4 flex justify-between items-center">
       <div className="flex items-center space-x-3">
         {company.avatarUrl && (
-          <img 
-            src={company.avatarUrl} 
-            alt={`Logo da ${company.name}`}
-            className="w-10 h-10 rounded-full object-cover"
-          />
+          <div className="w-12 h-12 rounded-full bg-black p-1">
+            <img 
+              src={company.avatarUrl} 
+              alt={`Logo da ${company.name}`}
+              className="w-full h-full rounded-full object-cover"
+            />
+          </div>
         )}
         <div>
           <h1 className="text-xl font-medium">{company.name || 'Sua Empresa'}</h1>

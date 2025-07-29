@@ -76,12 +76,18 @@ const Services: React.FC = () => {
       
       if (error) throw error;
       
+      // Remove o item imediatamente da lista local
+      setServices(currentServices => currentServices.filter(service => service.id !== id));
+      
       toast({
         title: 'Serviço excluído',
         description: 'O serviço foi excluído com sucesso.',
       });
       
-      fetchServices();
+      // Recarrega a lista do servidor para garantir sincronização
+      setTimeout(() => {
+        fetchServices();
+      }, 100);
     } catch (error: any) {
       toast({
         title: 'Erro ao excluir serviço',
