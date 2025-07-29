@@ -69,12 +69,23 @@ const Services: React.FC = () => {
   
   const handleDeleteService = async (id: string) => {
     try {
-      const { error } = await supabase
+      console.log('Tentando excluir serviço com ID:', id);
+      console.log('Company ID:', company.id);
+      
+      const { data, error } = await supabase
         .from('services')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select();
       
-      if (error) throw error;
+      console.log('Resultado da exclusão:', { data, error });
+      
+      if (error) {
+        console.error('Erro na exclusão:', error);
+        throw error;
+      }
+      
+      console.log('Exclusão bem-sucedida, dados retornados:', data);
       
       // Remove o item imediatamente da lista local
       setServices(currentServices => currentServices.filter(service => service.id !== id));
@@ -89,6 +100,7 @@ const Services: React.FC = () => {
         fetchServices();
       }, 100);
     } catch (error: any) {
+      console.error('Erro capturado:', error);
       toast({
         title: 'Erro ao excluir serviço',
         description: error.message,
