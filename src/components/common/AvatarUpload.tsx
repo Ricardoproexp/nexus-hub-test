@@ -109,10 +109,21 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
     }
   };
 
+  const fileInputId = `file-input-${Date.now()}`;
+
+  const handleClick = () => {
+    if (!uploading) {
+      document.getElementById(fileInputId)?.click();
+    }
+  };
+
   return (
     <div className="flex flex-col items-center space-y-4">
-      <div className="relative group">
-        <Avatar className={`${sizeClasses[size]} cursor-pointer transition-opacity group-hover:opacity-75`}>
+      <div 
+        className="relative group cursor-pointer"
+        onClick={handleClick}
+      >
+        <Avatar className={`${sizeClasses[size]} transition-opacity group-hover:opacity-75`}>
           <AvatarImage src={currentAvatarUrl || undefined} alt="Avatar" />
           <AvatarFallback className="text-lg font-semibold">
             {fallbackText}
@@ -122,20 +133,25 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
           <Camera size={size === 'lg' ? 32 : 24} className="text-white drop-shadow-lg" />
         </div>
-        
-        <input
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          onChange={uploadAvatar}
-          disabled={uploading}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-        />
       </div>
       
+      <input
+        id={fileInputId}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        onChange={uploadAvatar}
+        disabled={uploading}
+        className="hidden"
+      />
+      
       <div className="text-center">
-        <p className="text-sm text-gray-600 mb-1">
-          {uploading ? 'Carregando...' : 'Clique para alterar'}
-        </p>
+        <button
+          onClick={handleClick}
+          disabled={uploading}
+          className="text-sm text-blue-600 hover:text-blue-800 mb-1 cursor-pointer"
+        >
+          {uploading ? 'Carregando...' : 'Clique para adicionar um logo'}
+        </button>
         <p className="text-xs text-gray-500">
           JPEG, PNG, WebP ou GIF (máx. 5MB)
         </p>
