@@ -118,7 +118,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
           phone: company.phone,
           email: company.email,
           segment: company.segment || null,
-          subscription_type: company.subscriptionType || null,
+          subscription_type: company.subscriptionType || 'monthly',
         });
 
       if (companyError) {
