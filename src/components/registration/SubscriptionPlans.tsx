@@ -21,15 +21,12 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onComplete, onBac
   };
 
   const handleSubscribe = async () => {
+    // Versão de teste: nenhum pagamento é necessário.
+    // Se nenhum plano for escolhido, usamos o mensal por defeito.
     if (!company.subscriptionType) {
-      toast({
-        title: "Selecione um plano",
-        description: "Por favor, selecione um plano para continuar",
-        variant: "destructive"
-      });
-      return;
+      updateCompany({ subscriptionType: 'monthly' });
     }
-    
+
     setIsRegistering(true);
     
     try {
@@ -71,7 +68,10 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onComplete, onBac
     
     <div className="space-y-6 animate-fade-in">
       <h2 className="text-2xl font-semibold mb-2">Escolha seu Plano</h2>
-      <p className="text-gray-600 mb-8">Selecione a forma de pagamento que mais se adequa às suas necessidades.</p>
+      <p className="text-gray-600 mb-4">Selecione a forma de pagamento que mais se adequa às suas necessidades.</p>
+      <div className="mb-8 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm text-gray-700">
+        Versão de teste: nenhum pagamento é cobrado. Pode escolher um plano ou simplesmente continuar.
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Plano Mensal */}
@@ -182,10 +182,10 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onComplete, onBac
         </Button>
         <Button
           onClick={handleSubscribe}
-          disabled={!company.subscriptionType || isRegistering}
+          disabled={isRegistering}
           loading={isRegistering}
         >
-          {isRegistering ? 'Processando...' : 'Finalizar Assinatura'}
+          {isRegistering ? 'Processando...' : 'Continuar (sem pagamento)'}
         </Button>
       </div>
     </div>
