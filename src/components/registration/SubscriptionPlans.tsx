@@ -21,15 +21,12 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onComplete, onBac
   };
 
   const handleSubscribe = async () => {
+    // Versão de teste: nenhum pagamento é necessário.
+    // Se nenhum plano for escolhido, usamos o mensal por defeito.
     if (!company.subscriptionType) {
-      toast({
-        title: "Selecione um plano",
-        description: "Por favor, selecione um plano para continuar",
-        variant: "destructive"
-      });
-      return;
+      updateCompany({ subscriptionType: 'monthly' });
     }
-    
+
     setIsRegistering(true);
     
     try {
