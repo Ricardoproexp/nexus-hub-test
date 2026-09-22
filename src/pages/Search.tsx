@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Search as SearchIcon, UserCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCustomer } from '@/context/CustomerContext';
-import { useCompany } from '@/context/CompanyContext';
+import { supabase } from '@/integrations/supabase/client';
 import Logo from '@/components/common/Logo';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -14,7 +14,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 type CompanyResult = {
   id: string;
   name: string;
-  segment: 'barbearia' | 'cabeleireiro' | 'restaurante';
+  segment: string;
   address: string;
 };
 
@@ -25,37 +25,46 @@ const Search: React.FC = () => {
   const [showCommandMenu, setShowCommandMenu] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [registeredCompanies, setRegisteredCompanies] = useState<CompanyResult[]>([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { customer, logoutCustomer } = useCustomer();
-  const { company } = useCompany();
 
-  // Initialize with registered companies when component mounts
+  // Load all registered companies from the database
   useEffect(() => {
-    // In a real implementation, this would fetch from a database
-    // Currently using company context as a simple example
-    const completedCompanies: CompanyResult[] = [];
-    
-    // If there is a registered company with a subscription, add it to the list
-    if (company.name && company.subscriptionType) {
-      completedCompanies.push({
-        id: '1', // In a real app, this would be a unique ID
-        name: company.name,
-        segment: company.segment || 'barbearia',
-        address: company.address || 'Endereço não disponível',
-      });
-    }
-    
-    setRegisteredCompanies(completedCompanies);
-  }, [company]);
+    const fetchCompanies = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('companies')
+        .select('id, name, segment, address')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Erro ao buscar empresas:', error);
+      }
+
+      setRegisteredCompanies(
+        (data || []).map((c) => ({
+          id: c.id,
+          name: c.name,
+          segment: c.segment || 'barbearia',
+          address: c.address || 'Endereço não disponível',
+        }))
+      );
+      setLoading(false);
+    };
+
+    fetchCompanies();
+  }, []);
 
   useEffect(() => {
     if (searchTerm.trim() === '') {
-      setResults([]);
+      setResults(registeredCompanies);
       return;
     }
-    
+
     const filteredResults = registeredCompanies.filter(company => 
-      company.name.toLowerCase().includes(searchTerm.toLowerCase())
+      company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (company.address || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
     setResults(filteredResults);
   }, [searchTerm, registeredCompanies]);
