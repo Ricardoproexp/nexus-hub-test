@@ -77,7 +77,6 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ customer, onSaved, onCancel
         phone: values.phone,
         address: values.address,
         user_id: user_id,  // Add the required user_id field
-        company_id: company.id, // Add company_id to associate customer with company
       };
       
       if (customer?.id) {
