@@ -201,8 +201,13 @@ const Search: React.FC = () => {
             </div>
           </div>
           
-          {searched && (
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">A carregar empresas...</div>
+          ) : (
             <div>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                {searchTerm.trim() === '' ? 'Empresas registradas' : 'Resultados da busca'}
+              </h2>
               {results.length > 0 ? (
                 <div className="grid gap-4">
                   {results.map((company) => (
