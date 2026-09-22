@@ -179,10 +179,10 @@ const SubscriptionPlans: React.FC<SubscriptionPlansProps> = ({ onComplete, onBac
         </Button>
         <Button
           onClick={handleSubscribe}
-          disabled={!company.subscriptionType || isRegistering}
+          disabled={isRegistering}
           loading={isRegistering}
         >
-          {isRegistering ? 'Processando...' : 'Finalizar Assinatura'}
+          {isRegistering ? 'Processando...' : 'Continuar (sem pagamento)'}
         </Button>
       </div>
     </div>
