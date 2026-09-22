@@ -240,7 +240,11 @@ const Search: React.FC = () => {
               ) : (
                 <div className="text-center py-8 bg-white rounded-lg shadow-sm border">
                   <h3 className="text-lg font-medium text-gray-900">Nenhuma empresa encontrada</h3>
-                  <p className="mt-1 text-gray-500">Tente mudar os termos da busca</p>
+                  <p className="mt-1 text-gray-500">
+                    {searchTerm.trim() === ''
+                      ? 'Ainda não há empresas registradas'
+                      : 'Tente mudar os termos da busca'}
+                  </p>
                 </div>
               )}
             </div>
