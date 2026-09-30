@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
@@ -65,6 +65,34 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const updateCompany = (data: Partial<Company>) => {
     setCompany((prev) => ({ ...prev, ...data }));
   };
+
+  // Restaurar a empresa da sessão ativa (após recarregar a página)
+  useEffect(() => {
+    const restore = async (userId?: string) => {
+      if (!userId) return;
+      const { data } = await supabase.from('companies').select('*').eq('user_id', userId).maybeSingle();
+      if (data) {
+        setCompany((prev) => (prev.id === data.id ? prev : {
+          id: data.id,
+          name: data.name,
+          cnpj: data.cnpj,
+          address: data.address,
+          phone: data.phone,
+          email: data.email,
+          password: '',
+          segment: data.segment as any,
+          subscriptionType: data.subscription_type as any,
+          isAuthenticated: true,
+          avatarUrl: data.avatar_url,
+        }));
+      }
+    };
+    supabase.auth.getSession().then(({ data }) => restore(data.session?.user.id));
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') setTimeout(() => restore(session?.user.id), 0);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
   const registerCompany = async (): Promise<boolean> => {
     try {
