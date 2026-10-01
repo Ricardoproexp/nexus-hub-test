@@ -3,7 +3,7 @@ import { useCompany } from '@/context/CompanyContext';
 import Logo from '../common/Logo';
 import AvatarUpload from '../common/AvatarUpload';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Users, Package, LineChart, CreditCard, Settings, Menu, X, Clipboard, Utensils, Scissors } from 'lucide-react';
+import { Home, Calendar, Users, Package, LineChart, Settings, Menu, X, Clipboard, Utensils, Scissors, ShoppingBag, Store } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -53,9 +53,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
   const commonItems = [
     { icon: <Home size={20} />, label: 'Dashboard', path: '/dashboard' },
     ...getSegmentSpecificItems(),
-    { icon: <LineChart size={20} />, label: 'Relatórios', path: '/reports' },
-    { icon: <CreditCard size={20} />, label: 'Assinatura', path: '/subscription' },
-    { icon: <Settings size={20} />, label: 'Configurações', path: '/settings' },
+    { icon: <ShoppingBag size={20} />, label: 'Produtos da Loja', path: '/products' },
+    { icon: <Clipboard size={20} />, label: 'Encomendas', path: '/orders' },
+    { icon: <LineChart size={20} />, label: 'Financeiro & Stock', path: '/reports' },
+    { icon: <Settings size={20} />, label: 'Definições da Loja', path: '/store-settings' },
+    ...(company.id ? [{ icon: <Store size={20} />, label: 'Ver a minha loja', path: `/loja/${company.id}` }] : []),
   ];
 
   return (
