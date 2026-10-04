@@ -227,12 +227,14 @@ const Search: React.FC = () => {
                         <p className="text-sm text-gray-600">{company.address}</p>
                       </CardContent>
                       <CardFooter>
-                        <Button 
-                          className="w-full bg-[#0057B7] hover:bg-[#004494]"
-                          onClick={() => navigate(`/schedule/${company.id}`)}
-                        >
-                          Agendar serviço
-                        </Button>
+                        <div className="grid grid-cols-2 gap-2 w-full">
+                          <Button variant="outline" onClick={() => navigate(`/loja/${company.id}`)}>
+                            Ver loja
+                          </Button>
+                          <Button onClick={() => navigate(`/schedule/${company.id}`)}>
+                            {company.segment === 'restaurante' ? 'Reservar' : 'Agendar'}
+                          </Button>
+                        </div>
                       </CardFooter>
                     </Card>
                   ))}
