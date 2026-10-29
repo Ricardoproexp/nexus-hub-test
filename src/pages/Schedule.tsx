@@ -1,466 +1,256 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/hooks/use-toast';
-import { useCustomer } from '@/context/CustomerContext';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import Logo from '@/components/common/Logo';
 import AuthDialog from '@/components/auth/AuthDialog';
-import { UserCircle, Loader2, MapPin, Phone, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, CalendarPlus, CheckCircle2, Loader2, MapPin, Minus, Plus, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
+import { db, eur, loadSettings, computeDeposit, CompanySettings, Product, productImages, variantPrice } from '@/lib/shop';
 
-type Company = {
-  id: string;
-  name: string;
-  segment: string | null;
-  address: string | null;
-  phone: string | null;
-  avatar_url: string | null;
-};
+type Service = { id: string; name: string; price: number | null; duration: number };
+type Company = { id: string; name: string; segment: string | null; address: string | null; avatar_url: string | null };
 
-type ServiceType = {
-  id: string;
-  name: string;
-  price: number | null;
-  duration: number;
-};
-
-const OPEN_HOUR = 8;
-const CLOSE_HOUR = 20;
+function icsLink(title: string, start: Date, minutes: number, location: string) {
+  const f = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const end = new Date(start.getTime() + minutes * 60000);
+  const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART:${f(start)}\nDTEND:${f(end)}\nSUMMARY:${title}\nLOCATION:${location}\nEND:VEVENT\nEND:VCALENDAR`;
+  return 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+}
 
 const Schedule: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const { customer } = useCustomer();
-
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState<Company | null>(null);
-  const [services, setServices] = useState<ServiceType[]>([]);
-  const [selectedService, setSelectedService] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedTime, setSelectedTime] = useState<Date | null>(null);
-  const [timeSlots, setTimeSlots] = useState<{ time: Date; isAvailable: boolean }[]>([]);
-  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [services, setServices] = useState<Service[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [settings, setSettings] = useState<CompanySettings | null>(null);
+  const [serviceId, setServiceId] = useState<string | null>(null);
+  const [date, setDate] = useState<Date | undefined>();
+  const [time, setTime] = useState<Date | null>(null);
+  const [busy, setBusy] = useState<{ start: number; end: number }[]>([]);
+  const [party, setParty] = useState(2);
+  const [extras, setExtras] = useState<Record<string, number>>({});
+  const [contact, setContact] = useState({ name: '', email: '', phone: '' });
+  const [authOpen, setAuthOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [done, setDone] = useState<{ start: Date; service: Service } | null>(null);
 
-  // Carregar empresa + serviços reais
+  const isRestaurant = company?.segment === 'restaurante';
+
   useEffect(() => {
-    const load = async () => {
-      if (!id) return;
-      setLoading(true);
-
-      const [{ data: companyData, error: companyError }, { data: servicesData }] = await Promise.all([
-        supabase
-          .from('companies')
-          .select('id, name, segment, address, phone, avatar_url')
-          .eq('id', id)
-          .maybeSingle(),
-        supabase
-          .from('services')
-          .select('id, name, price, duration')
-          .eq('company_id', id)
-          .order('name'),
-      ]);
-
-      if (companyError) {
-        console.error('Erro ao carregar empresa:', companyError);
+    const sync = async () => {
+      const { data } = await supabase.auth.getSession();
+      const u = data.session?.user;
+      setUserId(u?.id ?? null);
+      if (u) {
+        const { data: c } = await supabase.from('customers').select('name,email,phone').eq('user_id', u.id).maybeSingle();
+        setContact((p) => ({ name: p.name || c?.name || '', email: p.email || c?.email || u.email || '', phone: p.phone || c?.phone || '' }));
       }
-
-      setCompany(companyData as Company | null);
-      setServices((servicesData || []) as ServiceType[]);
-      setLoading(false);
     };
+    sync();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => sync());
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
-    load();
+  useEffect(() => {
+    if (!id) return;
+    (async () => {
+      setLoading(true);
+      const [c, s, p, st] = await Promise.all([
+        supabase.from('companies').select('id,name,segment,address,avatar_url').eq('id', id).maybeSingle(),
+        supabase.from('services').select('id,name,price,duration').eq('company_id', id).order('name'),
+        db.from('products').select('*, product_images(*), product_variants(*)').eq('company_id', id).eq('active', true).limit(12),
+        loadSettings(id),
+      ]);
+      setCompany(c.data as Company | null);
+      setServices((s.data || []) as Service[]);
+      setProducts(((p.data || []) as Product[]).filter((x) => (x.product_variants || []).some((v) => v.stock > 0)));
+      setSettings(st);
+      setLoading(false);
+    })();
   }, [id]);
 
-  const service = services.find((s) => s.id === selectedService) || null;
-
-  // Gerar horários reais com base nos agendamentos existentes
-  const loadSlots = useCallback(async () => {
-    if (!selectedDate || !service || !id) return;
-    setSlotsLoading(true);
-
-    const dayStart = new Date(selectedDate);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(selectedDate);
-    dayEnd.setHours(23, 59, 59, 999);
-
-    const { data: booked } = await supabase
-      .from('appointments')
-      .select('appointment_date, service_duration, status')
-      .eq('company_id', id)
-      .gte('appointment_date', dayStart.toISOString())
-      .lte('appointment_date', dayEnd.toISOString());
-
-    const busy = (booked || [])
-      .filter((b) => b.status !== 'cancelled')
-      .map((b) => {
-        const start = new Date(b.appointment_date).getTime();
-        return { start, end: start + (b.service_duration || 30) * 60000 };
-      });
-
-    const step = 30;
-    const duration = service.duration || 30;
-    const slots: { time: Date; isAvailable: boolean }[] = [];
-    const now = Date.now();
-
-    for (let hour = OPEN_HOUR; hour < CLOSE_HOUR; hour++) {
-      for (let minute = 0; minute < 60; minute += step) {
-        const slotDate = new Date(selectedDate);
-        slotDate.setHours(hour, minute, 0, 0);
-
-        const slotStart = slotDate.getTime();
-        const slotEnd = slotStart + duration * 60000;
-
-        const closing = new Date(selectedDate);
-        closing.setHours(CLOSE_HOUR, 0, 0, 0);
-        if (slotEnd > closing.getTime()) continue;
-
-        const overlaps = busy.some((b) => slotStart < b.end && slotEnd > b.start);
-        const inPast = slotStart <= now;
-
-        slots.push({ time: slotDate, isAvailable: !overlaps && !inPast });
-      }
-    }
-
-    setTimeSlots(slots);
-    setSelectedTime(null);
-    setSlotsLoading(false);
-  }, [selectedDate, service, id]);
+  const service = services.find((s) => s.id === serviceId) || null;
 
   useEffect(() => {
-    if (selectedDate && selectedService) {
-      loadSlots();
-    } else {
-      setTimeSlots([]);
+    if (!date || !id) return;
+    const from = new Date(date); from.setHours(0, 0, 0, 0);
+    const to = new Date(from); to.setDate(to.getDate() + 1);
+    setTime(null);
+    db.rpc('get_booked_slots', { p_company_id: id, p_from: from.toISOString(), p_to: to.toISOString() }).then(({ data }: any) => {
+      setBusy((data || []).map((b: any) => { const st = new Date(b.appointment_date).getTime(); return { start: st, end: st + (b.service_duration || 30) * 60000 }; }));
+    });
+  }, [date, id]);
+
+  const slots = useMemo(() => {
+    if (!date || !service || !settings) return [];
+    const out: { t: Date; ok: boolean }[] = [];
+    const dur = service.duration || 30;
+    for (let m = settings.open_hour * 60; m + dur <= settings.close_hour * 60; m += settings.slot_minutes || 30) {
+      const t = new Date(date); t.setHours(Math.floor(m / 60), m % 60, 0, 0);
+      const s = t.getTime(), e = s + dur * 60000;
+      out.push({ t, ok: s > Date.now() && !busy.some((b) => s < b.end && e > b.start) });
     }
-  }, [selectedDate, selectedService, loadSlots]);
+    return out;
+  }, [date, service, settings, busy]);
 
-  // Garante que existe um registo de cliente ligado à conta autenticada
-  const ensureCustomerId = async (): Promise<string | null> => {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const user = sessionData.session?.user;
-    if (!user) return null;
+  const deposit = service && settings ? computeDeposit(settings, Number(service.price || 0)) : 0;
+  const extraItems = products.flatMap((p) => (p.product_variants || []).filter((v) => extras[v.id]).map((v) => ({ p, v, q: extras[v.id] })));
+  const extrasTotal = extraItems.reduce((s, i) => s + variantPrice(i.p, i.v) * i.q, 0);
 
-    const { data: existing } = await supabase
-      .from('customers')
-      .select('id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (existing) return existing.id;
-
-    const { data: created, error } = await supabase
-      .from('customers')
-      .insert({
-        user_id: user.id,
-        name: customer?.name || (user.user_metadata as any)?.name || user.email?.split('@')[0] || 'Cliente',
-        email: customer?.email || user.email || '',
-        phone: customer?.phone || (user.user_metadata as any)?.phone || '',
-      })
-      .select('id')
-      .single();
-
-    if (error) {
-      console.error('Erro ao criar cliente:', error);
-      return null;
-    }
-    return created.id;
-  };
-
-  const handleSchedule = async () => {
-    if (!company || !service || !selectedTime) {
-      toast({
-        title: 'Informações incompletas',
-        description: 'Selecione serviço, data e horário',
-        variant: 'destructive',
-      });
-      return;
-    }
-
+  const confirm = async () => {
+    if (!userId) { setAuthOpen(true); return; }
+    if (!service || !time) return;
+    if (!contact.name.trim() || !contact.email.trim()) { toast.error('Indique nome e email'); return; }
     setSubmitting(true);
-    try {
-      const customerId = await ensureCustomerId();
-      if (!customerId) {
-        setSubmitting(false);
-        setShowAuthDialog(true);
-        toast({
-          title: 'Entre na sua conta',
-          description: 'Faça login ou cadastre-se para confirmar o agendamento',
-        });
-        return;
-      }
-
-      const { error } = await supabase.from('appointments').insert({
-        company_id: company.id,
-        customer_id: customerId,
-        service_name: service.name,
-        service_price: service.price,
-        service_duration: service.duration,
-        appointment_date: selectedTime.toISOString(),
-        status: 'scheduled',
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: 'Agendamento confirmado',
-        description: `${service.name} em ${format(selectedTime, "dd 'de' MMMM 'às' HH:mm", { locale: pt })}`,
-      });
-
-      setSelectedTime(null);
-      await loadSlots();
-      setTimeout(() => navigate('/search'), 1500);
-    } catch (error: any) {
-      console.error('Erro ao agendar:', error);
-      toast({
-        title: 'Não foi possível agendar',
-        description: error.message || 'Tente novamente',
-        variant: 'destructive',
-      });
-    } finally {
-      setSubmitting(false);
-    }
+    const { error } = await db.rpc('place_booking', {
+      p_company_id: id, p_service_id: service.id, p_date: time.toISOString(),
+      p_party_size: isRestaurant ? party : null, p_customer: contact,
+      p_items: extraItems.map((i) => ({ variant_id: i.v.id, quantity: i.q })),
+    });
+    setSubmitting(false);
+    if (error) { toast.error(error.message); return; }
+    setDone({ start: time, service });
   };
 
-  const getSegmentLabel = (segment: string | null) => {
-    switch (segment) {
-      case 'barbearia':
-        return 'Barbearia/Cabeleireiro';
-      case 'cabeleireiro':
-        return 'Cabeleireiro';
-      case 'restaurante':
-        return 'Restaurante';
-      case 'loja':
-        return 'Loja de Produtos';
-      default:
-        return segment || 'Empresa';
-    }
-  };
+  if (loading) return <div className="max-w-3xl mx-auto p-4 space-y-4"><Skeleton className="h-24" /><Skeleton className="h-64" /></div>;
+  if (!company) return <div className="p-8 text-center"><p className="mb-4">Empresa não encontrada.</p><Button onClick={() => navigate('/search')}>Voltar</Button></div>;
 
-  const getActionLabel = () => (company?.segment === 'restaurante' ? 'Reservar' : 'Agendar');
-  const getServiceWord = () => (company?.segment === 'restaurante' ? 'mesa' : 'serviço');
-
-  if (loading) {
+  if (done) {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center gap-3">
-        <Loader2 className="h-6 w-6 animate-spin text-[#0057B7]" />
-        <p className="text-gray-600 text-sm">A carregar empresa...</p>
-      </div>
-    );
-  }
-
-  if (!company) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-        <p>Empresa não encontrada</p>
-        <Button size="sm" onClick={() => navigate('/search')} className="mt-4">
-          Voltar para busca
-        </Button>
+      <div className="min-h-screen bg-muted/40 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full text-center">
+          <CardContent className="pt-8 space-y-4">
+            <CheckCircle2 className="mx-auto h-14 w-14 text-primary" />
+            <h1 className="text-2xl font-bold">{isRestaurant ? 'Reserva confirmada!' : 'Agendamento confirmado!'}</h1>
+            <p className="text-muted-foreground">{done.service.name} em {company.name}<br />{format(done.start, "EEEE, d 'de' MMMM 'às' HH:mm", { locale: pt })}</p>
+            {deposit > 0 && <p className="text-sm">Sinal pago: <b>{eur(deposit)}</b> (pagamento de teste)</p>}
+            {extrasTotal > 0 && <p className="text-sm">Produtos a levantar: <b>{eur(extrasTotal)}</b></p>}
+            <div className="flex flex-col gap-2 pt-2">
+              <Button asChild variant="outline"><a href={icsLink(`${done.service.name} - ${company.name}`, done.start, done.service.duration, company.address || '')} download="reserva.ics"><CalendarPlus className="mr-2 h-4 w-4" />Adicionar ao calendário</a></Button>
+              <Button onClick={() => navigate('/conta')}>Ver as minhas reservas</Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <div className="py-4 px-4 sm:px-6 lg:px-8 border-b bg-white">
-        <div className="max-w-5xl mx-auto flex justify-between items-center">
-          <Logo />
-          <div className="flex gap-2">
-            {customer ? (
-              <div className="flex items-center gap-2">
-                <div className="text-sm text-right">
-                  <p className="font-medium text-xs">{customer.name}</p>
-                  <p className="text-gray-500 text-xs">{customer.email}</p>
-                </div>
-                <UserCircle className="h-5 w-5" />
-              </div>
-            ) : (
-              <Button size="xs" onClick={() => setShowAuthDialog(true)}>
-                Entrar / Cadastrar
-              </Button>
-            )}
+    <div className="min-h-screen bg-muted/40 pb-28">
+      <header className="bg-background border-b">
+        <div className="max-w-3xl mx-auto p-4 flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Voltar"><ArrowLeft /></Button>
+          {company.avatar_url && <img src={company.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" />}
+          <div className="min-w-0">
+            <h1 className="font-bold truncate">{company.name}</h1>
+            {company.address && <p className="text-xs text-muted-foreground flex items-center gap-1 truncate"><MapPin className="h-3 w-3" />{company.address}</p>}
           </div>
+          <Button asChild variant="outline" size="sm" className="ml-auto"><Link to={`/loja/${company.id}`}>Loja</Link></Button>
         </div>
-      </div>
+      </header>
 
-      <div className="flex-grow py-6 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-5">
-            <Button size="xs" variant="outline" onClick={() => navigate('/search')} className="mb-3">
-              ← Voltar para busca
-            </Button>
-            <div className="flex items-center gap-3">
-              {company.avatar_url && (
-                <img
-                  src={company.avatar_url}
-                  alt={`Logótipo de ${company.name}`}
-                  className="h-12 w-12 rounded-full object-cover border-2 border-black"
-                />
-              )}
-              <div>
-                <h1 className="text-2xl font-bold">{company.name}</h1>
-                <div className="flex flex-wrap items-center gap-2 mt-1 text-sm text-gray-600">
-                  <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">
-                    {getSegmentLabel(company.segment)}
-                  </span>
-                  {company.address && (
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5" /> {company.address}
-                    </span>
-                  )}
-                  {company.phone && (
-                    <span className="flex items-center gap-1">
-                      <Phone className="h-3.5 w-3.5" /> {company.phone}
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+      <main className="max-w-3xl mx-auto p-4 space-y-4">
+        <Card>
+          <CardHeader><CardTitle className="text-lg">1. {isRestaurant ? 'Tipo de reserva' : 'Escolha o serviço'}</CardTitle></CardHeader>
+          <CardContent className="grid gap-2 sm:grid-cols-2">
+            {services.length === 0 && <p className="text-muted-foreground text-sm">Esta empresa ainda não tem serviços disponíveis.</p>}
+            {services.map((s) => (
+              <button key={s.id} onClick={() => setServiceId(s.id)} className={`text-left rounded-lg border p-3 transition ${serviceId === s.id ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:bg-muted'}`}>
+                <div className="font-medium">{s.name}</div>
+                <div className="text-sm text-muted-foreground">{s.duration} min · {eur(s.price)}</div>
+              </button>
+            ))}
+          </CardContent>
+        </Card>
 
+        {service && (
           <Card>
-            <CardHeader>
-              <CardTitle>{getActionLabel()} {getServiceWord()}</CardTitle>
-              <CardDescription>
-                Selecione o {getServiceWord()}, a data e o horário disponível
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {services.length === 0 ? (
-                <div className="border rounded-md p-8 text-center bg-gray-50">
-                  <p className="text-gray-600">Esta empresa ainda não publicou serviços disponíveis.</p>
+            <CardHeader><CardTitle className="text-lg">2. Dia e hora</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              {isRestaurant && (
+                <div className="flex items-center gap-3"><Users className="h-4 w-4" /><span className="text-sm">Pessoas</span>
+                  <Button size="icon" variant="outline" onClick={() => setParty(Math.max(1, party - 1))}><Minus className="h-4 w-4" /></Button>
+                  <span className="w-6 text-center font-semibold">{party}</span>
+                  <Button size="icon" variant="outline" onClick={() => setParty(Math.min(30, party + 1))}><Plus className="h-4 w-4" /></Button>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div>
-                    <h3 className="font-medium mb-3">1. Selecione o {getServiceWord()}</h3>
-                    <div className="space-y-2">
-                      {services.map((s) => (
-                        <button
-                          key={s.id}
-                          type="button"
-                          className={`w-full text-left border rounded-md p-3 transition-colors ${
-                            selectedService === s.id ? 'border-[#0057B7] bg-blue-50' : 'hover:border-gray-400'
-                          }`}
-                          onClick={() => setSelectedService(s.id)}
-                        >
-                          <div className="flex justify-between">
-                            <p className="font-medium">{s.name}</p>
-                            {!!s.price && s.price > 0 && (
-                              <p>{Number(s.price).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</p>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-500">{s.duration} min</p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="font-medium mb-3">2. Selecione a data</h3>
-                    <Card className="border shadow-none">
-                      <CardContent className="p-3">
-                        <Calendar
-                          mode="single"
-                          selected={selectedDate}
-                          onSelect={setSelectedDate}
-                          disabled={(date) => {
-                            const today = new Date();
-                            today.setHours(0, 0, 0, 0);
-                            return date < today;
-                          }}
-                          initialFocus
-                          className="rounded-md"
-                        />
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  <div>
-                    <h3 className="font-medium mb-3">3. Selecione o horário</h3>
-                    {selectedDate && selectedService ? (
-                      slotsLoading ? (
-                        <div className="border rounded-md p-6 flex items-center justify-center bg-gray-50">
-                          <Loader2 className="h-5 w-5 animate-spin text-[#0057B7]" />
-                        </div>
-                      ) : timeSlots.some((s) => s.isAvailable) ? (
-                        <div className="grid grid-cols-2 gap-2 max-h-[320px] overflow-y-auto pr-1">
-                          {timeSlots.map((slot, index) => (
-                            <button
-                              key={index}
-                              className={`py-2 px-3 rounded-md text-center text-sm ${
-                                slot.isAvailable
-                                  ? selectedTime && slot.time.getTime() === selectedTime.getTime()
-                                    ? 'bg-[#0057B7] text-white'
-                                    : 'bg-white border hover:border-[#0057B7]'
-                                  : 'bg-gray-100 text-gray-400 cursor-not-allowed line-through'
-                              }`}
-                              disabled={!slot.isAvailable}
-                              onClick={() => setSelectedTime(slot.time)}
-                            >
-                              {format(slot.time, 'HH:mm')}
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="border rounded-md p-6 text-center bg-gray-50">
-                          <p className="text-gray-500 text-sm">Sem horários disponíveis nesta data</p>
-                        </div>
-                      )
-                    ) : (
-                      <div className="border rounded-md p-6 flex items-center justify-center bg-gray-50">
-                        <p className="text-gray-500 text-center text-sm">
-                          {!selectedService
-                            ? `Selecione um ${getServiceWord()} primeiro`
-                            : 'Selecione uma data para ver os horários disponíveis'}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+              )}
+              <div className="flex justify-center"><Calendar mode="single" selected={date} onSelect={setDate} locale={pt} disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))} className="rounded-md border" /></div>
+              {date && (
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                  {slots.length === 0 && <p className="col-span-full text-sm text-muted-foreground">Sem horários neste dia.</p>}
+                  {slots.map(({ t, ok }) => (
+                    <Button key={t.toISOString()} size="sm" disabled={!ok} variant={time?.getTime() === t.getTime() ? 'default' : 'outline'} onClick={() => setTime(t)} className={!ok ? 'line-through' : ''}>{format(t, 'HH:mm')}</Button>
+                  ))}
                 </div>
               )}
             </CardContent>
-            <Separator />
-            <CardFooter className="flex flex-col sm:flex-row gap-3 justify-between pt-6">
-              <div className="text-sm">
-                {service && selectedDate && selectedTime && (
-                  <p className="flex items-center gap-2 text-gray-600">
-                    <CheckCircle2 className="h-4 w-4 text-[#0057B7]" />
-                    {service.name} • {format(selectedDate, "dd 'de' MMMM", { locale: pt })} •{' '}
-                    {format(selectedTime, 'HH:mm')}
-                    {!!service.price && service.price > 0 && (
-                      <> • {Number(service.price).toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })}</>
-                    )}
-                  </p>
-                )}
-              </div>
-              <Button
-                onClick={handleSchedule}
-                disabled={!selectedService || !selectedDate || !selectedTime || submitting}
-                className="bg-[#0057B7] hover:bg-[#004494]"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> A confirmar...
-                  </>
-                ) : (
-                  `${getActionLabel()} agora`
-                )}
-              </Button>
-            </CardFooter>
           </Card>
-        </div>
-      </div>
+        )}
 
-      <AuthDialog open={showAuthDialog} onOpenChange={setShowAuthDialog} />
+        {time && products.length > 0 && (
+          <Card>
+            <CardHeader><CardTitle className="text-lg">3. Juntar à reserva (opcional)</CardTitle></CardHeader>
+            <CardContent className="grid gap-3 sm:grid-cols-2">
+              {products.map((p) => {
+                const v = (p.product_variants || []).find((x) => x.stock > 0)!;
+                const q = extras[v.id] || 0;
+                const img = productImages(p)[0];
+                return (
+                  <div key={p.id} className="flex items-center gap-3 border rounded-lg p-2">
+                    {img ? <img src={img} alt="" className="h-12 w-12 rounded object-cover" /> : <div className="h-12 w-12 rounded bg-muted" />}
+                    <div className="flex-1 min-w-0"><div className="text-sm font-medium truncate">{p.name}</div><div className="text-xs text-muted-foreground">{eur(variantPrice(p, v))}</div></div>
+                    <Button size="icon" variant="outline" className="h-8 w-8" disabled={!q} onClick={() => setExtras({ ...extras, [v.id]: q - 1 })}><Minus className="h-3 w-3" /></Button>
+                    <span className="w-4 text-center text-sm">{q}</span>
+                    <Button size="icon" variant="outline" className="h-8 w-8" disabled={q >= v.stock} onClick={() => setExtras({ ...extras, [v.id]: q + 1 })}><Plus className="h-3 w-3" /></Button>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+        )}
+
+        {time && (
+          <Card>
+            <CardHeader><CardTitle className="text-lg">{products.length ? 4 : 3}. Os seus dados</CardTitle></CardHeader>
+            <CardContent className="space-y-3">
+              {!userId && <div className="rounded-md bg-muted p-3 text-sm flex items-center justify-between gap-2">Inicie sessão para confirmar.<Button size="sm" onClick={() => setAuthOpen(true)}>Entrar</Button></div>}
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div><Label>Nome</Label><Input value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} /></div>
+                <div><Label>Email</Label><Input type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} /></div>
+                <div><Label>Telefone</Label><Input value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} /></div>
+              </div>
+              <Separator />
+              <div className="text-sm space-y-1">
+                <div className="flex justify-between"><span>{service?.name}</span><span>{eur(service?.price)}</span></div>
+                {extrasTotal > 0 && <div className="flex justify-between"><span>Produtos</span><span>{eur(extrasTotal)}</span></div>}
+                {deposit > 0 && <div className="flex justify-between font-semibold text-primary"><span>Sinal a pagar agora</span><span>{eur(deposit)}</span></div>}
+                {settings && <p className="text-xs text-muted-foreground pt-1">Cancelamento grátis até {settings.cancel_hours}h antes. Pagamentos em modo de teste.</p>}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </main>
+
+      {time && (
+        <div className="fixed bottom-0 inset-x-0 bg-background border-t p-3">
+          <div className="max-w-3xl mx-auto flex items-center gap-3">
+            <div className="text-sm min-w-0"><div className="font-medium truncate">{format(time, "d MMM, HH:mm", { locale: pt })}</div><div className="text-muted-foreground">Pagar agora: {eur(deposit + extrasTotal)}</div></div>
+            <Button className="ml-auto" size="lg" onClick={confirm} disabled={submitting}>{submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Confirmar</Button>
+          </div>
+        </div>
+      )}
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
     </div>
   );
 };
