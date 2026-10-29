@@ -88,8 +88,10 @@ export type Database = {
         Row: {
           address: string
           avatar_url: string | null
+          banner_url: string | null
           cnpj: string
           created_at: string
+          description: string | null
           email: string
           id: string
           name: string
@@ -101,8 +103,10 @@ export type Database = {
         Insert: {
           address: string
           avatar_url?: string | null
+          banner_url?: string | null
           cnpj: string
           created_at?: string
+          description?: string | null
           email: string
           id?: string
           name: string
@@ -114,8 +118,10 @@ export type Database = {
         Update: {
           address?: string
           avatar_url?: string | null
+          banner_url?: string | null
           cnpj?: string
           created_at?: string
+          description?: string | null
           email?: string
           id?: string
           name?: string
@@ -180,6 +186,38 @@ export type Database = {
             foreignKeyName: "company_settings_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_notes: {
+        Row: {
+          company_id: string
+          created_at: string
+          customer_key: string
+          id: string
+          note: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          customer_key: string
+          id?: string
+          note: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          customer_key?: string
+          id?: string
+          note?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_notes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
@@ -552,6 +590,17 @@ export type Database = {
         }[]
       }
       is_company_owner: { Args: { _company_id: string }; Returns: boolean }
+      place_booking: {
+        Args: {
+          p_company_id: string
+          p_customer: Json
+          p_date: string
+          p_items?: Json
+          p_party_size: number
+          p_service_id: string
+        }
+        Returns: string
+      }
       place_order: {
         Args: {
           p_billing?: Json
