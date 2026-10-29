@@ -1,0 +1,2 @@
+CREATE POLICY "Companies view their booking customers" ON public.customers FOR SELECT TO authenticated
+USING (EXISTS (SELECT 1 FROM public.appointments a WHERE a.customer_id = customers.id AND public.is_company_owner(a.company_id)));
